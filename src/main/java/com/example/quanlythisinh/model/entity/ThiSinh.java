@@ -51,9 +51,15 @@ public class ThiSinh {
     @Column(length = 50)
     public String hoiDongThi;
 
+    /**
+     * Khi xóa thí sinh trong ứng dụng, dùng {@link com.example.quanlythisinh.service.ThiSinhService#delete(String)}
+     * (bulk JPQL + remove). Cascade/orphan ở đây hỗ trợ thao tác persistence trong session khác, không thay
+     * cho luồng xóa qua service.
+     */
     @OneToMany(mappedBy = "thiSinh", cascade = CascadeType.ALL, orphanRemoval = true)
     public List<DiemThi> diemThiList = new ArrayList<>();
 
+    /** @see #diemThiList */
     @OneToMany(mappedBy = "thiSinh", cascade = CascadeType.ALL, orphanRemoval = true)
     public List<DangKyNguyenVong> dangKyNguyenVongList = new ArrayList<>();
 

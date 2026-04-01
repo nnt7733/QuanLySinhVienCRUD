@@ -170,7 +170,12 @@ public class ThiSinhService {
         }
     }
 
-    /** Ham xoa thi sinh theo so bao danh. */
+    /**
+     * Xóa thí sinh theo SBD. Luôn dùng luồng này: xóa hàng loạt {@code DiemThi} và {@code DangKyNguyenVong}
+     * bằng JPQL trước, rồi {@code remove(ThiSinh)} — đảm bảo xóa con kể cả khi quan hệ LAZY chưa nạp.
+     * Cascade trên entity {@link ThiSinh} phục vụ thao tác đồ thị trong session khác (nếu có), không thay
+     * cho bước bulk delete ở đây.
+     */
     public void delete(String soBaoDanh) {
         EntityManager em = JpaUtil.createEntityManager();
         EntityTransaction tx = em.getTransaction();

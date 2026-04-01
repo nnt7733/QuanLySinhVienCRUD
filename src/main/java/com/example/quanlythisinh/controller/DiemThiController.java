@@ -20,6 +20,11 @@ public class DiemThiController {
         return diemThiService.getAllRows();
     }
 
+    /** Dòng thiếu điểm lên trước (giữ thứ tự trong nhóm). */
+    public List<DiemThiTableRow> orderIncompleteScoresFirst(List<DiemThiTableRow> rows) {
+        return diemThiService.orderIncompleteScoresFirst(rows);
+    }
+
     /** Ham loc bang diem theo so bao danh (chuoi con). */
     public List<DiemThiTableRow> listBySoBaoDanhFilter(String keyword) {
         return diemThiService.getRowsBySoBaoDanhLike(keyword);

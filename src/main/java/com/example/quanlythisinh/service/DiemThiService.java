@@ -12,6 +12,7 @@ import com.example.quanlythisinh.util.ScoreUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DiemThiService {
@@ -137,6 +138,29 @@ public class DiemThiService {
                         ScoreUtil.diemUuTienNullable(d),
                         ScoreUtil.finalScoreNullable(d)))
                 .toList();
+    }
+
+    /**
+     * Thứ tự hiển thị: các dòng thiếu ít nhất một điểm môn lên trước; thứ tự tương đối trong từng nhóm giữ nguyên.
+     */
+    public List<DiemThiTableRow> orderIncompleteScoresFirst(List<DiemThiTableRow> rows) {
+        if (rows == null || rows.isEmpty()) {
+            return rows == null ? List.of() : List.copyOf(rows);
+        }
+        List<DiemThiTableRow> incomplete = new ArrayList<>();
+        List<DiemThiTableRow> complete = new ArrayList<>();
+        for (DiemThiTableRow r : rows) {
+            boolean isComplete = r.diemMon1() != null && r.diemMon2() != null && r.diemMon3() != null;
+            if (isComplete) {
+                complete.add(r);
+            } else {
+                incomplete.add(r);
+            }
+        }
+        List<DiemThiTableRow> out = new ArrayList<>(incomplete.size() + complete.size());
+        out.addAll(incomplete);
+        out.addAll(complete);
+        return out;
     }
 
     /** Ham cap nhat diem thi theo cap thi sinh-khoi; neu chua co thi tao moi. */

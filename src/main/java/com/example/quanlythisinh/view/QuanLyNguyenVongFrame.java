@@ -7,7 +7,6 @@ import com.example.quanlythisinh.model.dto.NganhTheoTruongRow;
 import com.example.quanlythisinh.model.dto.TruongDaiHocTableRow;
 import com.example.quanlythisinh.model.entity.ThiSinh;
 import com.example.quanlythisinh.model.entity.TruongDaiHoc;
-import com.example.quanlythisinh.service.LookupService;
 import com.example.quanlythisinh.util.TextUtil;
 
 import javax.swing.*;
@@ -32,7 +31,6 @@ public class QuanLyNguyenVongFrame extends JFrame {
     public static final String FRAME_TITLE = "Quản lý nguyện vọng và trường đại học";
 
     private final NguyenVongController controller;
-    private final LookupService lookupService;
     private final TimKiemThongKeController baoCaoController;
     private final Runnable onBack;
 
@@ -49,18 +47,15 @@ public class QuanLyNguyenVongFrame extends JFrame {
     private JPanel actionBarNv;
 
     /**
-     * @param lookupService      danh sách thí sinh / trường cho combo và editor
      * @param baoCaoController   tổng NV, chi tiết ngành theo trường
      * @param onBack             Quay lại → hiện menu
      */
     public QuanLyNguyenVongFrame(
             NguyenVongController controller,
-            LookupService lookupService,
             TimKiemThongKeController baoCaoController,
             Runnable onBack
     ) {
         this.controller = controller;
-        this.lookupService = lookupService;
         this.baoCaoController = baoCaoController;
         this.onBack = onBack;
         initUi();
@@ -226,7 +221,7 @@ public class QuanLyNguyenVongFrame extends JFrame {
 
     /** Nạp danh sách thí sinh từ DB rồi áp dụng lọc SBD hiện tại. */
     private void loadThiSinhCombo() {
-        cachedAllThiSinh = new ArrayList<>(lookupService.getAllThiSinh());
+        cachedAllThiSinh = new ArrayList<>(controller.listAllThiSinhForLookup());
         refillThiSinhCombo();
     }
 
@@ -348,7 +343,7 @@ public class QuanLyNguyenVongFrame extends JFrame {
     /** Combo mã trường trong ô chỉnh sửa cột “Mã trường”. */
     private void applyNvMaTruongEditor() {
         JComboBox<String> cb = new JComboBox<>();
-        for (TruongDaiHoc tr : lookupService.getAllTruongDaiHoc()) {
+        for (TruongDaiHoc tr : controller.listAllTruongForLookup()) {
             cb.addItem(tr.maTruong);
         }
         UiStyles.styleCombo(cb);
@@ -462,7 +457,7 @@ public class QuanLyNguyenVongFrame extends JFrame {
             return;
         }
         JComboBox<TruongDaiHoc> cbTr = new JComboBox<>();
-        for (TruongDaiHoc tr : lookupService.getAllTruongDaiHoc()) {
+        for (TruongDaiHoc tr : controller.listAllTruongForLookup()) {
             cbTr.addItem(tr);
         }
         UiStyles.styleCombo(cbTr);

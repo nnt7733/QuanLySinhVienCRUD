@@ -49,7 +49,7 @@ public class MainApp {
             DiemThiController diemThiController = new DiemThiController(diemThiService);
             TimKiemThongKeController timKiemThongKeController = new TimKiemThongKeController(baoCaoService);
             NguyenVongController nguyenVongController = new NguyenVongController(
-                    truongDaiHocService, dangKyNguyenVongService);
+                    truongDaiHocService, dangKyNguyenVongService, lookupService);
 
             // Giữ tham chiếu menu chính để ẩn/hiện khi chuyển màn hình.
             final MainMenuFrame[] menuHolder = new MainMenuFrame[1];
@@ -70,7 +70,6 @@ public class MainApp {
                 }
                 QuanLyThiSinhFrame thiSinhFrame = new QuanLyThiSinhFrame(
                         thiSinhController,
-                        diemThiController,
                         () -> menuHolder[0].setVisible(true)
                 );
                 thiSinhFrame.setVisible(true);
@@ -94,7 +93,6 @@ public class MainApp {
                 menuHolder[0].setVisible(false);
                 QuanLyNguyenVongFrame nvFrame = new QuanLyNguyenVongFrame(
                         nguyenVongController,
-                        lookupService,
                         timKiemThongKeController,
                         () -> menuHolder[0].setVisible(true)
                 );

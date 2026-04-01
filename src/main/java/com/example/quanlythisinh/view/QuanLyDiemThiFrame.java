@@ -244,35 +244,8 @@ public class QuanLyDiemThiFrame extends JFrame {
     private void fillScoreTable(List<DiemThiTableRow> rows) {
         DefaultTableModel model = EditableGridSupport.createModel(COLS, 0, 1, 2, 3, 7, 8, 9);
 
-        // Rows missing at least one subject should appear on top for easier data entry.
-        // Important: do not reorder complete rows here so sorting from backend remains consistent.
-        List<DiemThiTableRow> incomplete = new ArrayList<>();
-        List<DiemThiTableRow> complete = new ArrayList<>();
-        for (DiemThiTableRow r : rows) {
-            boolean isComplete = r.diemMon1() != null && r.diemMon2() != null && r.diemMon3() != null;
-            if (isComplete) {
-                complete.add(r);
-            } else {
-                incomplete.add(r);
-            }
-        }
-
-        for (DiemThiTableRow r : incomplete) {
-            model.addRow(new Object[]{
-                    r.id(),
-                    r.soBaoDanh(),
-                    r.hoTen(),
-                    r.maKhoi(),
-                    TextUtil.cellD(r.diemMon1()),
-                    TextUtil.cellD(r.diemMon2()),
-                    TextUtil.cellD(r.diemMon3()),
-                    TextUtil.cellD(r.tong3Mon()),
-                    TextUtil.cellD(r.diemUuTien()),
-                    TextUtil.cellD(r.tongDiem())
-            });
-        }
-
-        for (DiemThiTableRow r : complete) {
+        List<DiemThiTableRow> ordered = controller.orderIncompleteScoresFirst(rows);
+        for (DiemThiTableRow r : ordered) {
             model.addRow(new Object[]{
                     r.id(),
                     r.soBaoDanh(),

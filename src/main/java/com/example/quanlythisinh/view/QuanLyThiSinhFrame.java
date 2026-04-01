@@ -1,10 +1,7 @@
 package com.example.quanlythisinh.view;
 
-import com.example.quanlythisinh.controller.DiemThiController;
 import com.example.quanlythisinh.controller.ThiSinhController;
-import com.example.quanlythisinh.model.dto.DiemThiTableRow;
 import com.example.quanlythisinh.model.dto.ThiSinhTableRow;
-import com.example.quanlythisinh.model.entity.KhoiThi;
 import com.example.quanlythisinh.model.entity.ThiSinh;
 import com.example.quanlythisinh.util.TextUtil;
 
@@ -16,7 +13,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Vector;
 
 /** Quản lý thí sinh: bảng theo SBD tăng dần, tìm kết hợp. */
 public class QuanLyThiSinhFrame extends JFrame {
@@ -26,7 +22,6 @@ public class QuanLyThiSinhFrame extends JFrame {
     };
 
     private final ThiSinhController controller;
-    private final DiemThiController diemThiController;
     private final Runnable onBack;
     private JTable table;
     private JTextField txtTimHoTen;
@@ -34,19 +29,8 @@ public class QuanLyThiSinhFrame extends JFrame {
     private JTextField txtTimNoiSinh;
     private JLabel lblTongThiSinh;
 
-    // Các trường / hàm nhập điểm (hiện đã không còn hiển thị UI).
-    private JLabel lblDiemCaption;
-    private JComboBox<KhoiThi> cbKhoiThi;
-    private JTextField txtDiemMon1;
-    private JTextField txtDiemMon2;
-    private JTextField txtDiemMon3;
-    private JButton btnXacNhanDiem;
-    private String soBaoDanhChoPhepNhapDiem;
-    private JPanel cardPanelNhapDiem;
-
-    public QuanLyThiSinhFrame(ThiSinhController controller, DiemThiController diemThiController, Runnable onBack) {
+    public QuanLyThiSinhFrame(ThiSinhController controller, Runnable onBack) {
         this.controller = controller;
-        this.diemThiController = diemThiController;
         this.onBack = onBack;
         initUi();
         loadData();
@@ -54,16 +38,12 @@ public class QuanLyThiSinhFrame extends JFrame {
 
     /** Thanh tìm, bảng dữ liệu, nút Thêm / Lưu / Xóa / Quay lại. */
     private void initUi() {
-        // 1) Khởi tạo cấu hình cửa sổ và bảng dữ liệu.
         configureFrame();
         initTable();
 
-        // 2) Khối phía trên: bộ lọc tìm kiếm + nhãn tổng số thí sinh.
         JPanel searchCard = buildSearchCard();
-        // 3) Khối nút thao tác chính ở cuối màn hình.
         JPanel actionBar = buildActionBar();
 
-        // 5) Ghép bố cục tổng thể: NORTH (tìm kiếm), CENTER (bảng), SOUTH (nút).
         JPanel root = UiStyles.createRootPanel(new BorderLayout(UiStyles.GAP_PANEL, UiStyles.GAP_PANEL));
         root.add(searchCard, BorderLayout.NORTH);
         root.add(UiStyles.wrapScrollPane(table), BorderLayout.CENTER);
@@ -79,7 +59,7 @@ public class QuanLyThiSinhFrame extends JFrame {
         UiStyles.styleChildFrame(this, onBack);
     }
 
-    /** Tạo bảng, bật style và gắn listener chọn dòng để đồng bộ panel nhập điểm. */
+    /** Tạo bảng, bật style và gắn listener chọn dòng. */
     private void initTable() {
         table = new JTable();
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -87,10 +67,7 @@ public class QuanLyThiSinhFrame extends JFrame {
         UiStyles.styleTable(table);
         UiStyles.enableZebraRows(table);
 
-        // Enter trong bảng = lưu nhanh dòng đang chọn.
         EditableGridSupport.installEnterCommits(table, this::luuDongDangChon);
-
-        // Chọn dòng chỉ phục vụ phần CRUD thí sinh (không còn đồng bộ panel nhập điểm).
     }
 
     /** Dựng card tìm kiếm: bộ lọc theo Họ tên/SBD/Nơi sinh + nhãn tổng số. */
@@ -131,9 +108,7 @@ public class QuanLyThiSinhFrame extends JFrame {
         JPanel searchCard = UiStyles.createCardPanel(new BorderLayout());
         searchCard.add(searchBlock, BorderLayout.CENTER);
 
-        // Tìm theo điều kiện kết hợp.
         btnTim.addActionListener(e -> timKetHop());
-        // Xóa filter và nạp lại toàn bộ dữ liệu.
         btnHienTatCa.addActionListener(e -> resetSearchFilters());
         return searchCard;
     }
@@ -162,191 +137,6 @@ public class QuanLyThiSinhFrame extends JFrame {
         txtTimSbd.setText("");
         txtTimNoiSinh.setText("");
         loadData();
-    }
-
-    /** Khối nhập điểm (khối + 3 môn) gắn với dòng đang chọn trên bảng. */
-    private JPanel buildPanelNhapDiem() {
-        lblDiemCaption = new JLabel("Điểm cho thí sinh vừa thêm");
-        lblDiemCaption.setForeground(new Color(0x33, 0x33, 0x33));
-
-        List<KhoiThi> khois = diemThiController.listAllKhoi();
-        cbKhoiThi = new JComboBox<>(new Vector<>(khois));
-        cbKhoiThi.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(
-                    JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (value instanceof KhoiThi k) {
-                    setText(k.maKhoi + " — " + k.tenKhoi);
-                }
-                return this;
-            }
-        });
-        cbKhoiThi.addActionListener(e -> loadDiemFieldsFromDbForCurrentSelection());
-
-        txtDiemMon1 = new JTextField(6);
-        txtDiemMon2 = new JTextField(6);
-        txtDiemMon3 = new JTextField(6);
-        UiStyles.styleTextField(txtDiemMon1);
-        UiStyles.styleTextField(txtDiemMon2);
-        UiStyles.styleTextField(txtDiemMon3);
-
-        btnXacNhanDiem = new JButton("Xác nhận");
-        UiStyles.styleButton(btnXacNhanDiem, true);
-        btnXacNhanDiem.setEnabled(false);
-        cbKhoiThi.setEnabled(false);
-        txtDiemMon1.setEnabled(false);
-        txtDiemMon2.setEnabled(false);
-        txtDiemMon3.setEnabled(false);
-        btnXacNhanDiem.addActionListener(e -> xacNhanNhapDiemSauThem());
-
-        JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, UiStyles.GAP_H, UiStyles.GAP_V));
-        row.setOpaque(false);
-        row.add(UiStyles.toolbarLabel("Khối:"));
-        row.add(cbKhoiThi);
-        row.add(UiStyles.toolbarLabel("Môn 1:"));
-        row.add(txtDiemMon1);
-        row.add(UiStyles.toolbarLabel("Môn 2:"));
-        row.add(txtDiemMon2);
-        row.add(UiStyles.toolbarLabel("Môn 3:"));
-        row.add(txtDiemMon3);
-        row.add(btnXacNhanDiem);
-
-        JPanel card = UiStyles.createCardPanel(new BorderLayout(UiStyles.GAP_V, UiStyles.GAP_V));
-        card.add(lblDiemCaption, BorderLayout.NORTH);
-        card.add(row, BorderLayout.CENTER);
-        return card;
-    }
-
-    private String getSelectedSoBaoDanhOrBlank() {
-        int row = table.getSelectedRow();
-        if (row < 0) {
-            return "";
-        }
-        int mr = table.convertRowIndexToModel(row);
-        return TextUtil.str(((DefaultTableModel) table.getModel()).getValueAt(mr, 0)).trim();
-    }
-
-    private void syncDiemPanelFromSelection() {
-        boolean duocPhepThem = soBaoDanhChoPhepNhapDiem != null && !soBaoDanhChoPhepNhapDiem.isBlank();
-        if (cardPanelNhapDiem != null) {
-            cardPanelNhapDiem.setVisible(duocPhepThem);
-        }
-        if (!duocPhepThem) {
-            clearDiemFields();
-            setDiemInputsEnabled(false);
-            return;
-        }
-
-        boolean coKhoi = cbKhoiThi.getItemCount() > 0;
-        String sbd = getSelectedSoBaoDanhOrBlank();
-        if (sbd.isEmpty()) {
-            lblDiemCaption.setText(
-                    "Chọn dòng thí sinh vừa thêm (SBD " + soBaoDanhChoPhepNhapDiem + ") để nhập điểm.");
-            clearDiemFields();
-            setDiemInputsEnabled(false);
-            return;
-        }
-
-        if (!soBaoDanhChoPhepNhapDiem.equals(sbd)) {
-            lblDiemCaption.setText(
-                    "Chỉ nhập điểm tại đây cho thí sinh vừa thêm: " + soBaoDanhChoPhepNhapDiem + ".");
-            clearDiemFields();
-            setDiemInputsEnabled(false);
-            return;
-        }
-
-        int row = table.getSelectedRow();
-        int mr = table.convertRowIndexToModel(row);
-        String hoTen = TextUtil.str(((DefaultTableModel) table.getModel()).getValueAt(mr, 1));
-        lblDiemCaption.setText("Điểm cho: " + sbd + " — " + hoTen);
-        setDiemInputsEnabled(coKhoi);
-        loadDiemFieldsFromDbForCurrentSelection();
-    }
-
-    private void setDiemInputsEnabled(boolean on) {
-        cbKhoiThi.setEnabled(on);
-        txtDiemMon1.setEnabled(on);
-        txtDiemMon2.setEnabled(on);
-        txtDiemMon3.setEnabled(on);
-        btnXacNhanDiem.setEnabled(on);
-    }
-
-    private void clearDiemFields() {
-        txtDiemMon1.setText("");
-        txtDiemMon2.setText("");
-        txtDiemMon3.setText("");
-    }
-
-    private void loadDiemFieldsFromDbForCurrentSelection() {
-        if (soBaoDanhChoPhepNhapDiem == null
-                || !soBaoDanhChoPhepNhapDiem.equals(getSelectedSoBaoDanhOrBlank())) {
-            return;
-        }
-        String sbd = getSelectedSoBaoDanhOrBlank();
-        if (sbd.isEmpty()) {
-            return;
-        }
-        KhoiThi k = (KhoiThi) cbKhoiThi.getSelectedItem();
-        if (k == null) {
-            clearDiemFields();
-            return;
-        }
-        DiemThiTableRow r = diemThiController.findRow(sbd, k.id);
-        if (r != null) {
-            txtDiemMon1.setText(r.diemMon1() != null ? TextUtil.str(r.diemMon1()) : "");
-            txtDiemMon2.setText(r.diemMon2() != null ? TextUtil.str(r.diemMon2()) : "");
-            txtDiemMon3.setText(r.diemMon3() != null ? TextUtil.str(r.diemMon3()) : "");
-        } else {
-            clearDiemFields();
-        }
-    }
-
-    /** Sau Thêm thí sinh: lưu điểm, ẩn khung nhập, báo thành công. */
-    private void xacNhanNhapDiemSauThem() {
-        if (soBaoDanhChoPhepNhapDiem == null) {
-            JOptionPane.showMessageDialog(this, "Chỉ nhập điểm tại đây sau khi Thêm thí sinh thành công.");
-            return;
-        }
-        String sbd = getSelectedSoBaoDanhOrBlank();
-        if (sbd.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Chọn một thí sinh trên bảng.");
-            return;
-        }
-        if (!soBaoDanhChoPhepNhapDiem.equals(sbd)) {
-            JOptionPane.showMessageDialog(this, "Chỉ nhập điểm cho thí sinh vừa thêm (SBD " + soBaoDanhChoPhepNhapDiem + ").");
-            return;
-        }
-        KhoiThi k = (KhoiThi) cbKhoiThi.getSelectedItem();
-        if (k == null) {
-            JOptionPane.showMessageDialog(this, "Chưa có khối thi trong CSDL.");
-            return;
-        }
-        try {
-            Double m1 = parseNullableScore(txtDiemMon1.getText());
-            Double m2 = parseNullableScore(txtDiemMon2.getText());
-            Double m3 = parseNullableScore(txtDiemMon3.getText());
-            diemThiController.ensureDiemThiRow(sbd, k.id);
-            DiemThiTableRow row = diemThiController.findRow(sbd, k.id);
-            if (row == null) {
-                JOptionPane.showMessageDialog(this, "Không đọc lại được bản ghi điểm.", "Lỗi", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            diemThiController.updateScoresById(row.id(), m1, m2, m3);
-            soBaoDanhChoPhepNhapDiem = null;
-            syncDiemPanelFromSelection();
-            UiStyles.showShortToast(this, "Đã lưu điểm thành công.");
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, ViewMessages.diemSaveErr(ex));
-        }
-    }
-
-    private static Double parseNullableScore(String s) {
-        String t = s == null ? "" : s.trim();
-        if (t.isEmpty()) {
-            return null;
-        }
-        return Double.parseDouble(t.replace(',', '.'));
     }
 
     /** Nạp toàn bộ thí sinh từ server. */
