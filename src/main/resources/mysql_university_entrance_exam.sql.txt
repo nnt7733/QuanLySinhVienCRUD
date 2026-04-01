@@ -1,0 +1,132 @@
+-- ==========================================================
+-- MySQL script cho hệ thống Quản lý Thí sinh Dự thi Đại học
+-- Gồm: Tạo bảng + Dữ liệu mẫu nhỏ (8 thí sinh)
+-- Bản tách theo bước: thư mục database/ (01 → 06, xem comment trong từng file)
+-- Bản cài trọn gói (CREATE DATABASE + nhiều thí sinh): ThiSinhToolkit/sinh_data.py
+-- ==========================================================
+
+-- CREATE DATABASE IF NOT EXISTS quan_ly_thi_sinh
+--   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- USE quan_ly_thi_sinh;
+
+DROP TABLE IF EXISTS DangKyNguyenVong;
+DROP TABLE IF EXISTS DiemThi;
+DROP TABLE IF EXISTS TruongDaiHoc;
+DROP TABLE IF EXISTS KhoiThi;
+DROP TABLE IF EXISTS ThiSinh;
+
+CREATE TABLE ThiSinh (
+    soBaoDanh VARCHAR(20) PRIMARY KEY,
+    hoTen VARCHAR(120) NOT NULL,
+    ngaySinh DATE NOT NULL,
+    danToc VARCHAR(50),
+    tonGiao VARCHAR(50),
+    gioiTinh VARCHAR(10),
+    noiSinh VARCHAR(120),
+    diaChi VARCHAR(255),
+    soCanCuoc VARCHAR(20) UNIQUE,
+    soDienThoai VARCHAR(20),
+    email VARCHAR(100),
+    khuVuc VARCHAR(20),
+    doiTuongUuTien INT DEFAULT 0,
+    hoiDongThi VARCHAR(50)
+);
+
+CREATE TABLE KhoiThi (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    maKhoi VARCHAR(10) NOT NULL UNIQUE,
+    tenKhoi VARCHAR(50) NOT NULL,
+    mon1 VARCHAR(50) NOT NULL,
+    mon2 VARCHAR(50) NOT NULL,
+    mon3 VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE DiemThi (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    thiSinh_soBaoDanh VARCHAR(20) NOT NULL,
+    khoiThi_id BIGINT NOT NULL,
+    diemMon1 DECIMAL(4,2) NULL,
+    diemMon2 DECIMAL(4,2) NULL,
+    diemMon3 DECIMAL(4,2) NULL,
+    CONSTRAINT fk_diem_thisinh FOREIGN KEY (thiSinh_soBaoDanh) REFERENCES ThiSinh(soBaoDanh),
+    CONSTRAINT fk_diem_khoithi FOREIGN KEY (khoiThi_id) REFERENCES KhoiThi(id),
+    CONSTRAINT uk_diem_thisinh_khoithi UNIQUE (thiSinh_soBaoDanh, khoiThi_id)
+);
+
+CREATE TABLE TruongDaiHoc (
+    maTruong VARCHAR(20) PRIMARY KEY,
+    tenTruong VARCHAR(150) NOT NULL,
+    diaChi VARCHAR(255)
+);
+
+CREATE TABLE DangKyNguyenVong (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    thiSinh_soBaoDanh VARCHAR(20) NOT NULL,
+    truongDaiHoc_maTruong VARCHAR(20) NOT NULL,
+    thuTuNguyenVong INT NOT NULL,
+    nganhDangKy VARCHAR(120),
+    CONSTRAINT fk_nv_thisinh FOREIGN KEY (thiSinh_soBaoDanh) REFERENCES ThiSinh(soBaoDanh),
+    CONSTRAINT fk_nv_truong FOREIGN KEY (truongDaiHoc_maTruong) REFERENCES TruongDaiHoc(maTruong),
+    CONSTRAINT uk_nv_thisinh_thutu UNIQUE (thiSinh_soBaoDanh, thuTuNguyenVong)
+);
+
+-- =========================
+-- Dữ liệu mẫu Khối thi
+-- =========================
+INSERT INTO KhoiThi(maKhoi, tenKhoi, mon1, mon2, mon3) VALUES
+('A', 'Khối A', 'Toán', 'Lý', 'Hóa'),
+('B', 'Khối B', 'Toán', 'Hóa', 'Sinh'),
+('C', 'Khối C', 'Văn', 'Sử', 'Địa');
+
+-- =========================
+-- Dữ liệu mẫu Trường đại học
+-- =========================
+INSERT INTO TruongDaiHoc(maTruong, tenTruong, diaChi) VALUES
+('BKA', 'Đại học Bách Khoa Hà Nội', 'Hà Nội'),
+('QSB', 'Đại học Khoa học Tự nhiên', 'TP Hồ Chí Minh'),
+('KTH', 'Đại học Kinh tế Quốc dân', 'Hà Nội'),
+('DNY', 'Đại học Đà Nẵng', 'Đà Nẵng'),
+('CTU', 'Đại học Cần Thơ', 'Cần Thơ');
+
+-- =========================
+-- Dữ liệu mẫu Thí sinh
+-- =========================
+INSERT INTO ThiSinh(soBaoDanh, hoTen, ngaySinh, danToc, tonGiao, gioiTinh, noiSinh, diaChi, soCanCuoc, soDienThoai, email, khuVuc, doiTuongUuTien, hoiDongThi) VALUES
+('000001', 'Nguyễn Văn An', '2007-03-12', 'Kinh', 'Không', 'Nam', 'Hà Nội', 'Ba Đình, Hà Nội', '001234567890', '0901000001', '000001@example.com', 'KV3', 0, 'Hà Nội'),
+('000002', 'Trần Thị Bình', '2006-07-04', 'Kinh', 'Phật giáo', 'Nữ', 'Nghệ An', 'Vinh, Nghệ An', '001234567891', '0901000002', '000002@example.com', 'KV2', 1, 'Nghệ An'),
+('000003', 'Lê Quang Huy', '2007-01-20', 'Kinh', 'Không', 'Nam', 'Đà Nẵng', 'Hải Châu, Đà Nẵng', '001234567892', '0901000003', '000003@example.com', 'KV2-NT', 2, 'Đà Nẵng'),
+('000004', 'Phạm Gia Linh', '2006-11-15', 'Kinh', 'Công giáo', 'Nữ', 'Thanh Hóa', 'Thanh Hóa', '001234567893', '0901000004', '000004@example.com', 'KV1', 1, 'Thanh Hóa'),
+('000005', 'Đỗ Minh Quân', '2007-09-02', 'Kinh', 'Không', 'Nam', 'Cần Thơ', 'Ninh Kiều, Cần Thơ', '001234567894', '0901000005', '000005@example.com', 'KV3', 0, 'Cần Thơ'),
+('000006', 'Vũ Thị Mai', '2006-05-10', 'Kinh', 'Không', 'Nữ', 'Hải Phòng', 'Lê Chân, Hải Phòng', '001234567895', '0901000006', '000006@example.com', 'KV2', 0, 'Hải Phòng'),
+('000007', 'Hoàng Đức Thắng', '2007-12-01', 'Kinh', 'Không', 'Nam', 'Hà Tĩnh', 'Hà Tĩnh', '001234567896', '0901000007', '000007@example.com', 'KV2-NT', 2, 'Hà Tĩnh'),
+('000008', 'Bùi Khánh Chi', '2006-02-19', 'Kinh', 'Phật giáo', 'Nữ', 'An Giang', 'Long Xuyên, An Giang', '001234567897', '0901000008', '000008@example.com', 'KV1', 2, 'An Giang');
+
+-- =========================
+-- Dữ liệu mẫu Điểm thi
+-- =========================
+INSERT INTO DiemThi(thiSinh_soBaoDanh, khoiThi_id, diemMon1, diemMon2, diemMon3) VALUES
+('000001', 1, 8.50, 8.00, 7.75),
+('000002', 1, 7.80, 8.20, 8.40),
+('000003', 2, 9.00, 8.60, 8.10),
+('000004', 3, 8.70, 8.30, 8.90),
+('000005', 2, 7.50, 7.70, 8.20),
+('000006', 3, 8.10, 7.90, 8.00),
+('000007', 1, 9.20, 9.00, 8.80),
+('000008', 3, 9.00, 8.50, 8.60);
+
+-- =========================
+-- Dữ liệu mẫu Đăng ký nguyện vọng
+-- =========================
+INSERT INTO DangKyNguyenVong(thiSinh_soBaoDanh, truongDaiHoc_maTruong, thuTuNguyenVong, nganhDangKy) VALUES
+('000001', 'BKA', 1, 'Kỹ thuật phần mềm'),
+('000001', 'KTH', 2, 'Kinh tế đầu tư'),
+('000002', 'KTH', 1, 'Kế toán'),
+('000002', 'BKA', 2, 'Công nghệ thông tin'),
+('000003', 'QSB', 1, 'Khoa học máy tính'),
+('000003', 'DNY', 2, 'Công nghệ sinh học'),
+('000004', 'CTU', 1, 'Sư phạm Văn'),
+('000004', 'KTH', 2, 'Luật kinh tế'),
+('000005', 'DNY', 1, 'Công nghệ hóa học'),
+('000006', 'QSB', 1, 'Văn học'),
+('000007', 'BKA', 1, 'Kỹ thuật điều khiển'),
+('000008', 'CTU', 1, 'Quản trị kinh doanh');
